@@ -23,7 +23,7 @@ int main() {
     part2->updatePosition(timeStep);
 
     Particle particles[2] = {*part1, *part2};
-    output(particles);
+    output(space);
 
     auto a = space->getChildren();
 

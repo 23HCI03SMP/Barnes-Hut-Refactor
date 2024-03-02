@@ -125,4 +125,4 @@ public:
 };
 
 // Utility Functions
-void output(Particle particles[]);
+void output(Space *space);
