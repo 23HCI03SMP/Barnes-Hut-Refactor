@@ -3,24 +3,27 @@ double pi = 3.14159265358979323846;
 extern double speedOfLight = 3e8;
 
 extern double theta;
-extern double mu0 = 4 * pi * 1e-7;
-extern double epsilon0 = mu0 * speedOfLight * speedOfLight;
-extern double timeStep = 1e-6;
-extern double primaryCharge = 1.6e-19;
-extern double amu = 1.67e-27;
-extern double electronMass = 9.11e-31;
+extern double mu0 = 4 * pi * 1e-7; // N/A^2
+extern double epsilon0 = mu0 * speedOfLight * speedOfLight; // F/m
+extern double timeStep = 1e-6; // s
+extern double primaryCharge = 1.6e-19; // C
+extern double amu = 1.67e-27; // kg
+extern double electronMass = 9.11e-31; // kg
 
 // Structs
 struct Point {
     double x, y, z;
+    Point(double x, double y, double z) : x(x), y(y), z(z) {}
 };
 
 struct Velocity {
     double x, y, z;
+    Velocity(double x, double y, double z) : x(x), y(y), z(z) {}
 };
 
-struct Force {
-    double x, y, z;
+struct ForceVector {
+    double x, y, z, magnitude;
+    ForceVector(double x, double y, double z, double magnitude) : x(x), y(y), z(z), magnitude(magnitude) {}
 };
 
 
@@ -41,8 +44,8 @@ class Particle: public Node{
     public:
         Point pos;
         Velocity velocity;
-        Force bForce;
-        Force eForce;
+        ForceVector bForce;
+        ForceVector eForce;
         double mass;
 
         void Particle();
