@@ -1,7 +1,6 @@
-#include "barnes.h"
+#include "include/barnes.h"
 
-Node::Node(double mass, Charge charge)
+Node::Node(Charge charge)
 {
-    this->mass = mass;
     this->charge = charge;
 }

@@ -1,6 +1,6 @@
-#include "barnes.h"
+#include "include/barnes.h"
 
-Space::Space(Point minPoint, Point maxPoint, double mass, Charge charge) : Node(mass, charge)
+Space::Space(Point minPoint, Point maxPoint, Charge charge) : Node(charge)
 {
     this->minPoint = minPoint;
     this->maxPoint = maxPoint;
