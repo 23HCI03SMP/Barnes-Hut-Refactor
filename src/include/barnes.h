@@ -123,3 +123,6 @@ public:
     bool isExternalNode();
     std::vector<Particle *> getChildren();
 };
+
+// Utility Functions
+void output(Particle particles[]);
