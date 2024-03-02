@@ -1,6 +1,6 @@
 // Public variables
 double pi = 3.14159265358979323846;
-extern double speedOfLight = 3e8;
+extern double speedOfLight = 3e8; // m/s
 
 extern double theta;
 extern double mu0 = 4 * pi * 1e-7; // N/A^2
@@ -12,28 +12,33 @@ extern double electronMass = 9.11e-31; // kg
 
 // Structs
 struct Point {
-    double x, y, z;
+    double x, y, z; // m
     Point(double x, double y, double z) : x(x), y(y), z(z) {}
 };
 
 struct Velocity {
-    double x, y, z;
+    double x, y, z; // m/s
     Velocity(double x, double y, double z) : x(x), y(y), z(z) {}
 };
 
-struct ForceVector {
-    double x, y, z, magnitude;
-    ForceVector(double x, double y, double z, double magnitude) : x(x), y(y), z(z), magnitude(magnitude) {}
+struct Force {
+    double x, y, z; // N
+    Force(double x, double y, double z, double magnitude) : x(x), y(y), z(z) {}
+};
+
+struct Charge {
+    double positive, negative; // C
+    Charge(double positive, double negative) : positive(positive), negative(negative) {}
 };
 
 
 // Classes
 class Node {
     public:
-        int positiveCharge, negativeCharge;
+        Charge charge;
         Point posChargeCentre, negChargeCentre;
 
-        void Node();
+        void Node(std::string alias, Point Point, Velocity velocity, double mass, Charge charge);
         void recalculateCentreOfCharge();
         void insert(Node node);
         bool find(Point point);

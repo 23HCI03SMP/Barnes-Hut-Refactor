@@ -1,4 +1,5 @@
 #include "include/barnes.h"
+#include <string>
 
 #define o1 0
 #define o2 1
@@ -9,7 +10,7 @@
 #define o7 6
 #define o8 7
 
-Octree::Octree(std::string alias, float x, float y, float z, double vx, double vy, double vz, float mass, float charge)
+Node::Node(std::string alias, Point Point, Velocity velocity, double mass, Charge charge)
 {
     this->alias = alias;
     this->point = new Point(x, y, z);
@@ -52,7 +53,7 @@ Octree::Octree(float minX, float minY, float minZ, float maxX, float maxY, float
     }
 }
 
-void Octree::insert(Octree* octree) 
+void Node::insert(this) 
 {
     // check if point already exists
 
