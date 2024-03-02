@@ -1,5 +1,4 @@
 #include <vector>
-
 #include <string>
 #pragma once
 
@@ -55,6 +54,19 @@ struct Charge
 
     Charge() {}
     Charge(double positive, double negative) : positive(positive), negative(negative) {}
+
+    Charge operator+(Charge &other)
+    {
+        return Charge(this->positive + other.positive, this->negative + other.negative);
+    }
+
+    Charge operator+=(Charge &other)
+    {
+        this->positive += other.positive;
+        this->negative += other.negative;
+        
+        return Charge(this->positive + other.positive, this->negative + other.negative);
+    }
 };
 
 struct Field {
@@ -83,19 +95,6 @@ protected:
     Node(){};
 };
 
-class Space : public Node
-{
-public:
-    Point minPoint, maxPoint, centreOfPositveCharge, centreOfNegativeCharge;
-    std::vector<Node *> children;
-
-    Space(Point minPoint, Point maxPoint, Charge charge);
-    void recalculateCentreOfCharge(Node *node);
-    void insert(Node node);
-    bool find(Point point);
-    bool isExternalNode();
-};
-
 class Particle: public Node{
     public:
         std::string alias; //CHANGE TYPE!
@@ -109,4 +108,18 @@ class Particle: public Node{
         void updatePosition(double timeStep);
         void calculateBForce(Node *other);
         void calculateEForce(Node *other);
+};
+
+class Space : public Node
+{
+public:
+    Point minPoint, maxPoint, centreOfPositveCharge, centreOfNegativeCharge;
+    std::vector<Node *> children;
+
+    Space(Point minPoint, Point maxPoint, Charge charge = Charge(0, 0));
+    void recalculateCentreOfCharge();
+    void insert(Node *node);
+    bool find(Point point);
+    bool isExternalNode();
+    std::vector<Particle *> getChildren();
 };
