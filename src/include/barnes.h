@@ -1,57 +1,53 @@
-#include <vector>
-#include <string>
+// Public variables
+double pi = 3.14159265358979323846;
+extern double speedOfLight = 3e8;
 
-struct Point
-{
-    float x, y, z;
+extern double theta;
+extern double mu0 = 4 * pi * 1e-7;
+extern double epsilon0 = mu0 * speedOfLight * speedOfLight;
+extern double timeStep = 1e-6;
+extern double primaryCharge = 1.6e-19;
+extern double amu = 1.67e-27;
+extern double electronMass = 9.11e-31;
 
-    Point(): x(-1), y(-1), z(-1) {}
-    Point(float x, float y, float z): x(x), y(y), z(z) {}
+// Structs
+struct Point {
+    double x, y, z;
 };
 
-// class Octree 
-// {
-//     float mass;
-//     float positiveCharge, negativeCharge;
+struct Velocity {
+    double x, y, z;
+};
 
-//     float magneticFieldX = 0, magneticFieldY = 0, magneticFieldZ = 0;
-//     float electricFieldX = 0, electricFieldY = 0, electricFieldZ = 0;
+struct Force {
+    double x, y, z;
+};
 
-//     double ke = 0, pe = 0;
-// };
 
-// class Node : public Octree 
-// {
+// Classes
+class Node {
+    public:
+        int positiveCharge, negativeCharge;
+        Point posChargeCentre, negChargeCentre;
 
-// };
+        void Node();
+        void recalculateCentreOfCharge();
+        void insert(Node node);
+        bool find(Point point);
+        bool isExternalNode();
+};
 
-// class Octant : public Octree 
-// {
-//     double vx, vy, vz;
-// };
+class Particle: public Node{
+    public:
+        Point pos;
+        Velocity velocity;
+        Force bForce;
+        Force eForce;
+        double mass;
 
-struct Octree
-{
-    Point *point;
-    Point *minPoint, *maxPoint;
-    Point *positiveCoc, *negativeCoc;
-
-    float mass = 0;
-    double vx = 0, vy = 0, vz = 0;
-    std::vector<Octree*> children;
-
-    float magneticFieldX = 0, magneticFieldY = 0, magneticFieldZ = 0;
-    float electricFieldX = 0, electricFieldY = 0, electricFieldZ = 0;
-
-    float positiveCharge = 0, negativeCharge = 0;
-    double ke = 0, pe = 0;
-
-    std::string alias;
-
-    Octree(std::string alias, float x, float y, float z, double vx, double vy, double vz, float mass, float charge);
-    Octree(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
-
-    void insert(std::string alias, float x, float y, float z, double vx, double vy, double vz, float mass, float charge);
-    void insert(Octree *octree);
-    void find(float x, float y, float z);
+        void Particle();
+        void updatePosition(double timeStep);
+        void calculateBForce(Node root);
+        void calculateEForce(Node root);
+        void calculateForce(Node root);
 };
