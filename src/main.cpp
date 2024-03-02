@@ -14,8 +14,8 @@ int main() {
     part1->updatePosition(timeStep);
     part2->updatePosition(timeStep);
 
-    std::cout << "Particle 1: " << part1->pos.x << ", " << part1->pos.y << ", " << part1->pos.z << std::endl;
-    std::cout << "Particle 2: " << part2->pos.x << ", " << part2->pos.y << ", " << part2->pos.z << std::endl;
+    Particle particles[2] = {*part1, *part2};
+    output(particles);
 
     delete part1;
     delete part2;

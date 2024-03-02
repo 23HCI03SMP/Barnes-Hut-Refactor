@@ -16,12 +16,6 @@ Particle::Particle(std::string alias, Point pos, Velocity velocity, double mass,
 
 void Particle::updatePosition(double timeStep)
 {
-    // Electric Force
-    // Calculate the acceleration of the particle due to the electric force
-    Acceleration acceleration = Acceleration(eForce.x / mass, eForce.y / mass, eForce.z / mass);
-    // Update the velocity of the particle due to the electric force
-    velocity = Velocity(velocity.x + acceleration.x * timeStep, velocity.y + acceleration.y * timeStep, velocity.z + acceleration.z * timeStep);
-
     // Magnetic Force
     // Calculate the velocity of the particle due to the magnetic force
     Point p = Point(bField.x * timeStep / mass, bField.y * timeStep / mass, bField.z * timeStep / mass);
@@ -35,7 +29,13 @@ void Particle::updatePosition(double timeStep)
     Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
     Eigen::Matrix3d IA = (I + A).inverse();
     Eigen::Vector3d Vprime = IA * (I-A) * Eigen::Vector3d(velocity.x, velocity.y, velocity.z);
-    velocity = Velocity(velocity.x + Vprime(0), velocity.y + Vprime(1), velocity.z + Vprime(2));
+    velocity = Velocity(Vprime(0), Vprime(1), Vprime(2));
+
+    // Electric Force
+    // Calculate the acceleration of the particle due to the electric force
+    Acceleration acceleration = Acceleration(eForce.x / mass, eForce.y / mass, eForce.z / mass);
+    // Update the velocity of the particle due to the electric force
+    velocity = Velocity(velocity.x + acceleration.x * timeStep, velocity.y + acceleration.y * timeStep, velocity.z + acceleration.z * timeStep);
 
     pos = Point(pos.x + velocity.x * timeStep, pos.y + velocity.y * timeStep, pos.z + velocity.z * timeStep);
 }

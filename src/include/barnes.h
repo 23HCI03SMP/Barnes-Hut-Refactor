@@ -110,3 +110,6 @@ class Particle: public Node{
         void calculateBForce(Node *other);
         void calculateEForce(Node *other);
 };
+
+// Utility Functions
+void output(Particle particles[]);
