@@ -1,4 +1,6 @@
 .vscode/
 
+frames/
+*.mp4
 *.exe
 *.csv
