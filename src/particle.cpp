@@ -1,8 +1,9 @@
-# include "include/barnes.h"
-# include <stdlib.h>
-# include <cmath>
-# include <eigen3/Eigen/Dense>
-# include <string>
+#include "include/barnes.h"
+#include <stdlib.h>
+#include <cmath>
+#include <eigen3/Eigen/Dense>
+#include <string>
+#include <iostream>
 
 Particle::Particle(std::string alias, Point pos, Velocity velocity, double mass, Charge charge) : Node(charge)
 {
@@ -16,102 +17,126 @@ Particle::Particle(std::string alias, Point pos, Velocity velocity, double mass,
 
 void Particle::updatePosition(double timeStep)
 {
+    // std::cout << "1 " << this->alias << " " << this->pos.x << " " << this->pos.y << " " << this->pos.z << std::endl;
     // Magnetic Force
     // Calculate the velocity of the particle due to the magnetic force
-    Point p = Point(bField.x * timeStep / mass, bField.y * timeStep / mass, bField.z * timeStep / mass);
+    Point p = Point(this->bField.x * timeStep / mass, this->bField.y * timeStep / mass, this->bField.z * timeStep / mass);
 
-    Eigen::Matrix3d A {
-        {0, -p.y, p.y},
+    Eigen::Matrix3d A{
+        {0, -p.z, p.y},
         {p.z, 0, -p.x},
-        {-p.y, p.x, 0}
-    };
+        {-p.y, p.x, 0}};
 
     Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
     Eigen::Matrix3d IA = (I + A).inverse();
-    Eigen::Vector3d Vprime = IA * (I-A) * Eigen::Vector3d(velocity.x, velocity.y, velocity.z);
-    velocity = Velocity(Vprime(0), Vprime(1), Vprime(2));
+    Eigen::Vector3d Vprime = IA * (I - A) * Eigen::Vector3d(this->velocity.x, this->velocity.y, this->velocity.z);
+    this->velocity = Velocity(Vprime(0), Vprime(1), Vprime(2));
 
     // Electric Force
     // Calculate the acceleration of the particle due to the electric force
-    Acceleration acceleration = Acceleration(eForce.x / mass, eForce.y / mass, eForce.z / mass);
+    Acceleration acceleration = Acceleration(this->eForce.x / mass, this->eForce.y / mass, this->eForce.z / mass);
     // Update the velocity of the particle due to the electric force
-    velocity = Velocity(velocity.x + acceleration.x * timeStep, velocity.y + acceleration.y * timeStep, velocity.z + acceleration.z * timeStep);
+    this->velocity = Velocity(this->velocity.x + acceleration.x * timeStep, this->velocity.y + acceleration.y * timeStep, this->velocity.z + acceleration.z * timeStep);
+    // std::cout << "2 " << this->alias << " " << this->pos.x << " " << this->pos.y << " " << this->pos.z << std::endl;
 
-    pos = Point(pos.x + velocity.x * timeStep, pos.y + velocity.y * timeStep, pos.z + velocity.z * timeStep);
+    // std::cout << this->pos.x << " + " << this->velocity.x << " * " << timeStep << " = " << this->pos.x + this->velocity.x * timeStep << std::endl;
+    this->pos = Point(this->pos.x + this->velocity.x * timeStep, this->pos.y + this->velocity.y * timeStep, this->pos.z + this->velocity.z * timeStep);
+
+    // std::cout << "3 " << this->alias << " " << this->pos.x << " " << this->pos.y << " " << this->pos.z << std::endl;
 }
 
-Field BiotSavartLaw(Node other, Charge charge, float euclideanDistance, Distance distance, Velocity velocity) 
+Field BiotSavartLaw(Node other, Charge charge, float euclideanDistance, Distance distance, Velocity velocity)
 {
     Field bField = Field(((mu0 / (4 * pi)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.y * distance.z - velocity.z * distance.y))) + externalMagneticField.x,
-                        ((mu0 / (4 * pi)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.z * distance.x - velocity.x * distance.z))) + externalMagneticField.y,
-                        ((mu0 / (4 * pi)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.x * distance.y - velocity.y * distance.x))) + externalMagneticField.z);
+                         ((mu0 / (4 * pi)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.z * distance.x - velocity.x * distance.z))) + externalMagneticField.y,
+                         ((mu0 / (4 * pi)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.x * distance.y - velocity.y * distance.x))) + externalMagneticField.z);
     return bField;
 }
 
-Force CoulombsLaw(Node other, Charge charge, float euclideanDistance, Distance distance) 
+Force CoulombsLaw(Node other, Charge charge, float euclideanDistance, Distance distance)
 {
-    Force eForce = Force((1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.x + (externalElectricField.x * charge.positive), 
-                        (1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.y + (externalElectricField.y * charge.positive), 
-                        (1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.z + (externalElectricField.z * charge.positive));
+    Force eForce = Force((1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.x + (externalElectricField.x * charge.positive),
+                         (1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.y + (externalElectricField.y * charge.positive),
+                         (1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.z + (externalElectricField.z * charge.positive));
     return eForce;
 }
 
-void Particle::calculateBForce(Node *other)
+void Particle::calculateBForce(Node *other, Point centreOfCharge)
 {
-    bool isspace = dynamic_cast<Space*>(other) ? true : false; // Check if the other node is a space or a particle
-
-    if (isspace)
-    {
-        Point chargeCentre = dynamic_cast<Space*>(other)->centreOfNegativeCharge;
-        Distance distance = Distance(pos.x - chargeCentre.x, pos.y - chargeCentre.y, pos.z - chargeCentre.z); // Negative = left/below
-        float euclideanDistance = sqrt(distance.x * distance.x + distance.y * distance.y + distance.z * distance.z);
-        //Biot Savart Law for Point Charges
-        bField = BiotSavartLaw(*other, charge, euclideanDistance, distance, velocity);
-        
-        chargeCentre = dynamic_cast<Space*>(other)->centreOfPositveCharge;
-        distance = Distance(pos.x - chargeCentre.x, pos.y - chargeCentre.y, pos.z - chargeCentre.z); // Negative = left/below
-        euclideanDistance = sqrt(distance.x * distance.x + distance.y * distance.y + distance.z * distance.z);
-        //Biot Savart Law for Point Charges
-        Field newBField = BiotSavartLaw(*other, charge, euclideanDistance, distance, velocity);
-        bField = Field(bField.x + newBField.x, bField.y + newBField.y, bField.z + newBField.z);
-    }
-    else
-    {
-        Point chargeCentre = dynamic_cast<Particle*>(other)->pos;
-        Distance distance = Distance(pos.x - chargeCentre.x, pos.y - chargeCentre.y, pos.z - chargeCentre.z); // Negative = left/below
-        float euclideanDistance = sqrt(distance.x * distance.x + distance.y * distance.y + distance.z * distance.z);
-        //Biot Savart Law for Point Charges
-        bField = BiotSavartLaw(*other, charge, euclideanDistance, distance, velocity);
-    }
+    Distance distance = Distance(this->pos.x - centreOfCharge.x, this->pos.y - centreOfCharge.y, this->pos.z - centreOfCharge.z); // Negative = left/below
+    float euclideanDistance = sqrt(distance.x * distance.x + distance.y * distance.y + distance.z * distance.z);
+    // Biot Savart Law for Point Charges
+    Field newbField = BiotSavartLaw(*other, charge, euclideanDistance, distance, this->velocity);
+    this->bField = Field(this->bField.x + newbField.x, this->bField.y + newbField.y, this->bField.z + newbField.z);
 }
 
-void Particle::calculateEForce(Node *other)
+void Particle::calculateEForce(Node *other, Point centreOfCharge)
 {
-    bool isspace = dynamic_cast<Space*>(other) ? true : false; // Check if the other node is a space or a particle
+    Distance distance = Distance(this->pos.x - centreOfCharge.x, this->pos.y - centreOfCharge.y, this->pos.z - centreOfCharge.z); // Negative = left/below
+    float euclideanDistance = sqrt(distance.x * distance.x + distance.y * distance.y + distance.z * distance.z);
+    // Coloumb's Law + External Electric Field
+    Force neweForce = CoulombsLaw(*other, charge, euclideanDistance, distance);
+    // std::cout << "New eForce: " << neweForce.x << " " << neweForce.y << " " << neweForce.z << std::endl;
+    this->eForce = Force(this->eForce.x + neweForce.x, this->eForce.y + neweForce.y, this->eForce.z + neweForce.z);
+}
 
-    if (isspace)
+void Particle::simulate(Node *node)
+{
+    // this->bField = Field(0, 0, 0);
+    // this->eForce = Force(0, 0, 0);
+
+    bool isSame = node == this;
+
+    if (node == this) // Compare memory location
     {
-        // Neg COC
-        Point chargeCentre = dynamic_cast<Space*>(other)->centreOfNegativeCharge;
-        Distance distance = Distance(pos.x - chargeCentre.x, pos.y - chargeCentre.y, pos.z - chargeCentre.z); // Negative = left/below
-        float euclideanDistance = sqrt(distance.x * distance.x + distance.y * distance.y + distance.z * distance.z);
-        //Coloumb's Law + External Electric Field
-        eForce = CoulombsLaw(*other, charge, euclideanDistance, distance);
-        
-        // Pos COC
-        chargeCentre = dynamic_cast<Space*>(other)->centreOfPositveCharge;
-        distance = Distance(pos.x - chargeCentre.x, pos.y - chargeCentre.y, pos.z - chargeCentre.z); // Negative = left/below
-        euclideanDistance = sqrt(distance.x * distance.x + distance.y * distance.y + distance.z * distance.z);
-        //Coloumb's Law + External Electric Field
-        Force newEForce = CoulombsLaw(*other, charge, euclideanDistance, distance);
-        eForce = Force(eForce.x + newEForce.x, eForce.y + newEForce.y, eForce.z + newEForce.z);
+        std::cout << "Node is the same as particle. Trying to simulate itself. This is normal" << std::endl;
+        return;
+    }
+
+    if (node->isExternalNode())
+    {
+        if (dynamic_cast<Particle *>(node))
+        {
+            this->calculateBForce(node, dynamic_cast<Particle *>(node)->pos);
+            this->calculateEForce(node, dynamic_cast<Particle *>(node)->pos);
+        }
+    }
+    else if (dynamic_cast<Space *>(node))
+    {
+        Space *space = dynamic_cast<Space *>(node);
+        // Calculate s/d
+        double s = space->maxPoint.x - space->minPoint.x; // Width of octant
+
+        // Positive CoC
+        Distance posChargeDistance = Distance(this->pos.x - space->centreOfPositveCharge.x, this->pos.y - space->centreOfPositveCharge.y, this->pos.z - space->centreOfPositveCharge.z);
+        double posD = sqrt(posChargeDistance.x * posChargeDistance.x + posChargeDistance.y * posChargeDistance.y + posChargeDistance.z * posChargeDistance.z);
+
+        // Negative CoC
+        Distance negChargeDistance = Distance(this->pos.x - space->centreOfNegativeCharge.x, this->pos.y - space->centreOfNegativeCharge.y, this->pos.z - space->centreOfNegativeCharge.z);
+        double negD = sqrt(negChargeDistance.x * negChargeDistance.x + negChargeDistance.y * negChargeDistance.y + negChargeDistance.z * negChargeDistance.z);
+
+        double avgD = (posD + negD) / 2;
+
+        double ratio = s / avgD;
+
+        if (ratio < theta)
+        {
+            this->calculateBForce(node, space->centreOfPositveCharge);
+            this->calculateEForce(node, space->centreOfPositveCharge);
+
+            this->calculateBForce(node, space->centreOfNegativeCharge);
+            this->calculateEForce(node, space->centreOfNegativeCharge);
+        }
+        else
+        {
+            for (Node *child : space->children)
+            {
+                this->simulate(child);
+            }
+        }
     }
     else
     {
-        Point chargeCentre = dynamic_cast<Particle*>(other)->pos;
-        Distance distance = Distance(pos.x - chargeCentre.x, pos.y - chargeCentre.y, pos.z - chargeCentre.z); // Negative = left/below
-        float euclideanDistance = sqrt(distance.x * distance.x + distance.y * distance.y + distance.z * distance.z);
-        //Coloumb's Law + External Electric Field
-        eForce = CoulombsLaw(*other, charge, euclideanDistance, distance);
+        throw "Node is not a particle or a space?";
     }
 }

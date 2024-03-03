@@ -4,18 +4,19 @@
 #include "include/barnes.h"
 #include <vector>
 
-void output(Space *space)
+void output(Space *space) // Add the default argument for mode
 {
-    std::remove("output.csv");
-    std::ofstream file(std::filesystem::current_path().string() + "/output.csv"); // Qualify std::ofstream with std namespace
-    file.open("output.csv", std::ios_base::app);
+    std::ofstream file(std::filesystem::current_path().string() + "/output.csv", std::ios_base::app); // Qualify std::ofstream with std namespace
 
-    std::vector<Particle *> particles = space->getChildren(); // @Sunzizhuo add this please
+    auto particles = space->getChildren(); // @Sunzizhuo add this please
 
     for (Particle *particle : particles)
     {
-        file << particle->pos.x << "," << particle->pos.y << "," << particle->pos.z << std::endl;
+        file << particle->alias << "," << particle->pos.x << "," << particle->pos.y << "," << particle->pos.z << "," << particle->velocity.x << "," << particle->velocity.y << "," << particle->velocity.z << "," 
+        << particle->eForce.x << "," << particle->eForce.y << "," << particle->eForce.z << "," << particle->bField.x << "," << particle->bField.y << "," << particle->bField.z << std::endl;
+        std::cout << "Particle: " << particle->alias << std::endl;
     }
+    file << std::endl;
 
     file.close();
 }

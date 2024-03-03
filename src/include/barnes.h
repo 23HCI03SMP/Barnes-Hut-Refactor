@@ -6,10 +6,8 @@
 constexpr double pi = 3.14159265358979323846;
 constexpr double speedOfLight = 3e8; // m/s
 
-constexpr double theta = 0.5;
 constexpr double mu0 = 4 * pi * 1e-7; // N/A^2
 constexpr double epsilon0 = 1/(mu0 * speedOfLight * speedOfLight); // F/m
-constexpr double timeStep = 0.01; // s
 constexpr double elementaryCharge = 1.6e-19; // C
 constexpr double amu = 1.67e-27; // kg
 constexpr double electronMass = 9.11e-31; // kg
@@ -44,7 +42,7 @@ struct Distance {
 struct Force {
     double x, y, z; // N
 
-    Force() {}
+    Force() {x = 0; y = 0; z = 0;}
     Force(double x, double y, double z) : x(x), y(y), z(z) {}
 };
 
@@ -71,14 +69,16 @@ struct Charge
 struct Field {
     int x, y, z;
 
-    Field() {}
+    Field() {x = 0; y = 0; z = 0;}
     Field(int x, int y, int z) : x(x), y(y), z(z) {}
 };
 
 //Simulation Parameters
 const Field externalMagneticField = Field(0, 0, 0); // T
 const Field externalElectricField = Field(0, 0, 0); // V/m
-
+constexpr double theta = 0.5;
+constexpr int iterations = 10;
+constexpr double timeStep = 0.01; // s
 
 // Classes
 class Node
@@ -113,8 +113,9 @@ class Particle: public Node{
 
         Particle(std::string alias, Point pos, Velocity velocity, double mass, Charge charge);
         void updatePosition(double timeStep);
-        void calculateBForce(Node *other);
-        void calculateEForce(Node *other);
+        void calculateBForce(Node *other, Point centreOfCharge);
+        void calculateEForce(Node *other, Point centreOfCharge);
+        void simulate(Node *node);
 };
 
 class Space : public Node
