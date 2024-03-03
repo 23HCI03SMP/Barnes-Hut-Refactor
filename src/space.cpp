@@ -1,6 +1,10 @@
 #include "include/barnes.h"
 #include <iostream>
 #include <vector>
+#include <cstdarg>
+#include <cmath>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 #define o1 0 // top left back
 #define o2 1 // top right back
@@ -27,9 +31,61 @@ Space::~Space()
     }
 }
 
-std::vector<Particle *> Space::generateParticles(double density, Particle particle, double temperature, Shape shape, ...)
+std::vector<Particle *> Space::generateParticles(double density, BaseParticle particleParameters, double temperature, Shape shape, std::initializer_list<double> dimensions)
 {
-    throw "Not implemented";
+    std::vector<Particle *> particles;
+
+    gsl_rng *rng = gsl_rng_alloc(gsl_rng_default);
+    gsl_rng_set(rng, time(NULL));
+
+    switch (shape)
+    {
+    case Shape::SPHERE:
+    {
+        double radius = *dimensions.begin();
+        double n = std::ceil(density * (4 / 3) * PI * radius * radius * radius);
+
+        for (int i = 0; i < n; i++)
+        {
+            double x = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.x + this->minPoint.x) / 2;
+            double y = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.y + this->minPoint.y) / 2;
+            double z = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.z + this->minPoint.z) / 2;
+
+            double vx = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / particleParameters.mass));
+            double vy = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / particleParameters.mass));
+            double vz = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / particleParameters.mass));
+
+            Particle *particle = new Particle(particleParameters.alias, Point(x, y, z), Velocity(vx, vy, vz), particleParameters.mass, particleParameters.charge);
+            particle->bField = particleParameters.bField;
+            particle->eForce = particleParameters.eForce;
+
+            this->insert(particle);
+            particles.push_back(particle);
+        }
+
+        break;
+    }
+    case Shape::CYLINDER:
+    {
+        // double radius = va_arg(args, double);
+        // double height = va_arg(args, double);
+
+        break;
+    }
+    case Shape::HOLLOW_CYLINDER:
+    {
+        // double innerRadius = ;
+        // double outerRadius = ;
+        // double height = va_arg(args, double);
+
+        break;
+    }
+    default:
+    {
+        throw std::runtime_error("Invalid shape");
+    }
+    }
+    return particles;
 }
 
 std::vector<Particle *> Space::getChildren()
@@ -75,13 +131,23 @@ void Space::recalculateCentreOfCharge()
                 positiveChargeSum += child->charge.positive;
                 negativeChargeSum += child->charge.negative;
 
-                xPosPositiveChargeSum += dynamic_cast<Space *>(child)->centreOfPositveCharge.x * child->charge.positive;
-                yPosPositiveChargeSum += dynamic_cast<Space *>(child)->centreOfPositveCharge.y * child->charge.positive;
-                zPosPositiveChargeSum += dynamic_cast<Space *>(child)->centreOfPositveCharge.z * child->charge.positive;
+                Space *space = dynamic_cast<Space *>(child);
 
-                xPosNegativeChargeSum += dynamic_cast<Space *>(child)->centreOfNegativeCharge.x * child->charge.negative;
-                yPosNegativeChargeSum += dynamic_cast<Space *>(child)->centreOfNegativeCharge.y * child->charge.negative;
-                zPosNegativeChargeSum += dynamic_cast<Space *>(child)->centreOfNegativeCharge.z * child->charge.negative;
+                // if (std::isnan(space->centreOfPositveCharge.x) || std::isnan(space->centreOfNegativeCharge.x)) continue;
+
+                if (!std::isnan(space->centreOfPositveCharge.x))
+                {
+                    xPosPositiveChargeSum += space->centreOfPositveCharge.x * child->charge.positive;
+                    yPosPositiveChargeSum += space->centreOfPositveCharge.y * child->charge.positive;
+                    zPosPositiveChargeSum += space->centreOfPositveCharge.z * child->charge.positive;
+                }
+
+                if (!std::isnan(space->centreOfNegativeCharge.x))
+                {
+                    xPosNegativeChargeSum += space->centreOfNegativeCharge.x * child->charge.negative;
+                    yPosNegativeChargeSum += space->centreOfNegativeCharge.y * child->charge.negative;
+                    zPosNegativeChargeSum += space->centreOfNegativeCharge.z * child->charge.negative;
+                }
             }
             else
             {
@@ -113,7 +179,7 @@ bool Space::isExternalNode()
 
 bool Space::find(Point point)
 {
-    throw "Not implemented";
+    throw std::runtime_error("Not implemented");
 }
 
 Space *CalculateSpaceParameters(Space *baseSpace, int octant)
@@ -137,7 +203,7 @@ Space *CalculateSpaceParameters(Space *baseSpace, int octant)
     case o8: // bottom left front
         return new Space(baseSpace->minPoint, Point(baseSpace->maxPoint.x / 2, baseSpace->maxPoint.y / 2, baseSpace->maxPoint.z / 2), Charge(0, 0));
     default:
-        throw "This shouldn't even happen (Octant shouldn't be anything other than o1 to o8)";
+        throw std::runtime_error("This shouldn't even happen (Octant shouldn't be anything other than o1 to o8)");
     }
 }
 
@@ -248,7 +314,7 @@ void Space::insert(Node *node)
 
             if ((insertParticle->pos.x == currentPoint->pos.x) && (insertParticle->pos.y == currentPoint->pos.y) && (insertParticle->pos.z == currentPoint->pos.z)) // if the coordinates of the particle to be added already exists
             {
-                throw "Particle already exists. Boom! Fusion reaction!";
+                throw std::runtime_error("Particle already exists. Boom! Fusion reaction!");
             }
 
             // Create a new space and insert the current particle and the new particle into the new space, along with other octants

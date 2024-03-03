@@ -3,13 +3,24 @@
 
 int main() {
     Space *space = new Space(Point(0, 0, 0), Point(5, 5, 5));
-    Particle *part1 = new Particle("A", Point(0, 0, 0), Velocity(0, 0, 0), 1, Charge(ELEMENTARYCHARGE, 0));
-    Particle *part2 = new Particle("B", Point(5, 5, 5), Velocity(0, 0, 0), 1, Charge(0, ELEMENTARYCHARGE));
-    Particle *part3 = new Particle("C", Point(3, 3, 3), Velocity(0, 0, 0), 1, Charge(ELEMENTARYCHARGE, 0));
+    // Particle *part1 = new Particle("A", Point(0, 0, 0), Velocity(0, 0, 0), 1, Charge(ELEMENTARYCHARGE, 0));
+    // Particle *part2 = new Particle("B", Point(5, 5, 5), Velocity(0, 0, 0), 1, Charge(0, ELEMENTARYCHARGE));
+    // // Particle *part3 = new Particle("C", Point(3, 3, 3), Velocity(0, 0, 0), 1, Charge(ELEMENTARYCHARGE, 0));
 
-    space->insert(part1);
-    space->insert(part2);
-    space->insert(part3);
+    // space->insert(part1);
+    // space->insert(part2);
+    // // space->insert(part3);
+    BaseParticle bp = BaseParticle("A", 1, Charge(ELEMENTARYCHARGE, 0));
+    bp.bField = Field(0, 0, 0);
+    bp.eForce = Force(0, 0, 0);
+
+    BaseParticle bp2 = BaseParticle("B", 1, Charge(0, ELEMENTARYCHARGE));
+    bp2.bField = Field(0, 0, 0);
+    bp2.eForce = Force(0, 0, 0);
+
+    space->generateParticles(20, bp, 20, Shape::SPHERE, {1.0});
+    space->generateParticles(20, bp2, 20, Shape::SPHERE, {1.0});
+    // space->generateParticles(20, bp2, 20, Shape::SPHERE, {1.0});
     space->recalculateCentreOfCharge();
 
     // part1->calculateEForce(space);
@@ -25,6 +36,12 @@ int main() {
     // output(space);
 
     auto a = space->getChildren();
+
+    // counts for each particle
+    for (auto p : a)
+    {
+        std::cout << p->alias << std::endl;
+    }
 
     // delete part1;
     // delete part2;

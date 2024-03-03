@@ -4,14 +4,14 @@
 # include <eigen3/Eigen/Dense>
 # include <string>
 
-Particle::Particle(std::string alias, Point pos, Velocity velocity, double mass, Charge charge) : Node(charge)
+Particle::Particle(std::string alias, Point pos, Velocity velocity, double mass, Charge charge) : BaseParticle(alias, mass, charge)
 {
-    this->alias = alias;
+    // this->alias = alias;
     this->pos = pos;
     this->velocity = velocity;
-    this->mass = mass;
-    this->bField = bField;
-    this->eForce = eForce;
+    // this->mass = mass;
+    // this->bField = bField;
+    // this->eForce = eForce;
 }
 
 void Particle::updatePosition(double timeStep)
