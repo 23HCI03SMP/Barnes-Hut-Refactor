@@ -12,9 +12,9 @@ void output(Space *space) // Add the default argument for mode
 
     for (Particle *particle : particles)
     {
-        //file << particle->alias << "," << particle->pos.x << "," << particle->pos.y << "," << particle->pos.z << "," << particle->velocity.x << "," << particle->velocity.y << "," << particle->velocity.z << "," 
-        // << particle->eForce.x << "," << particle->eForce.y << "," << particle->eForce.z << "," << particle->bField.x << "," << particle->bField.y << "," << particle->bField.z << std::endl;
-        file << particle->pos.x << "," << particle->pos.y << "," << particle->pos.z << "," << particle->alias << std::endl;
+        file << particle->alias << "," << particle->pos.x << "," << particle->pos.y << "," << particle->pos.z << "," << particle->velocity.x << "," << particle->velocity.y << "," << particle->velocity.z << "," 
+        << particle->eForce.x << "," << particle->eForce.y << "," << particle->eForce.z << "," << particle->bField.x << "," << particle->bField.y << "," << particle->bField.z << std::endl;
+        //file << particle->pos.x << "," << particle->pos.y << "," << particle->pos.z << "," << particle->alias << std::endl;
     }
     file << std::endl;
 

@@ -13,8 +13,8 @@ OUTPUT_VIDEO = "output.mp4"
 
 FPS = 10
 
-MIN = -2e-10
-MAX = 2e-10
+MIN = -3e-10
+MAX = 3e-10
 
 COLORS = {
     "A": "red",
@@ -82,7 +82,7 @@ with open(os.path.join(os.path.dirname(__file__), SIMULATION_VALUES)) as csv:
         else:
             line_values = line.split(",")
 
-            particle_alias = line_values[3].strip()
+            particle_alias = line_values[0].strip()
             # if particle_alias == "Beryllium" or particle_alias == "LinerElectron" or particle_alias == "Electron":
             #     continue
 
@@ -91,7 +91,7 @@ with open(os.path.join(os.path.dirname(__file__), SIMULATION_VALUES)) as csv:
 
             color = COLORS[particle_alias]
 
-            values.append([float(line_values[0]), float(line_values[1]), float(line_values[2]), color])
+            values.append([float(line_values[1]), float(line_values[2]), float(line_values[2]), color])
 
     lock = threading.Lock()
     threads = []
