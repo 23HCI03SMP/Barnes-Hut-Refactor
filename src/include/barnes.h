@@ -88,6 +88,7 @@ public:
     Charge charge;
 
     Node(Charge charge);
+    bool isExternalNode();
 
     virtual ~Node(){};
 
