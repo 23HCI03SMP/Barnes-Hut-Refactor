@@ -19,6 +19,19 @@ Space::Space(Point minPoint, Point maxPoint, Charge charge) : Node(charge)
     this->centreOfNegativeCharge = Point(0, 0, 0);
 }
 
+Space::~Space()
+{
+    for (Node *child : this->getChildren())
+    {
+        delete child;
+    }
+}
+
+std::vector<Particle *> Space::generateParticles(double density, Particle particle, double temperature, Shape shape, ...)
+{
+    throw "Not implemented";
+}
+
 std::vector<Particle *> Space::getChildren()
 {
     std::vector<Particle *> particles;
@@ -194,6 +207,12 @@ void Space::insert(Node *node)
     // if the node to be added is a space
     if (dynamic_cast<Space *>(node))
     {
+        for (Particle *child : dynamic_cast<Space *>(node)->getChildren())
+        {
+            this->insert(child);
+        }
+
+        delete node; // delete the space after all its children have been added
     }
     else if (dynamic_cast<Particle *>(node)) // if the node to be added is a particle
     {
@@ -208,12 +227,13 @@ void Space::insert(Node *node)
 
         // decide which octant the node belongs to
         int octant = GetOctant(dynamic_cast<Particle *>(node), this);
-        Node *octantNode = this->children[octant];
+        Node *octantNode = this->children[octant]; // get the octant node
 
         if (dynamic_cast<Space *>(octantNode)) // if the octant is a space
         {
             if (dynamic_cast<Space *>(octantNode)->isExternalNode()) // if the octant has no chidren, simply replace it with the node
             {
+                delete octantNode;
                 this->children[octant] = node;
             }
             else
@@ -251,14 +271,8 @@ void Space::insert(Node *node)
                     newTree->children.push_back(CalculateSpaceParameters(newTree, i));
                 }
             }
+
+            this->children[octant] = newTree;
         }
     }
 }
-
-// void ChooseQuadrant(double minPoint, double maxPoint, Space &baseSpace)
-// {
-//     double xMid = (baseSpace.maxPoint.x + baseSpace.minPoint.x) / 2;
-//     double yMid = (baseSpace.maxPoint.y + baseSpace.minPoint.y) / 2;
-//     double zMid = (baseSpace.maxPoint.z + baseSpace.minPoint.z) / 2;
-
-// }
