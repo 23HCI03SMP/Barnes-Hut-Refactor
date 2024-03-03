@@ -64,8 +64,7 @@ struct Charge
     {
         this->positive += other.positive;
         this->negative += other.negative;
-        
-        return Charge(this->positive + other.positive, this->negative + other.negative);
+        return *this;
     }
 };
 
@@ -95,6 +94,13 @@ protected:
     Node(){};
 };
 
+enum Shape
+{
+    SPHERE,
+    CYLINDER,
+    HOLLOW_CYLINDER
+};
+
 class Particle: public Node{
     public:
         std::string alias; //CHANGE TYPE!
@@ -122,6 +128,9 @@ public:
     bool find(Point point);
     bool isExternalNode();
     std::vector<Particle *> getChildren();
+    std::vector<Particle *> generateParticles(double density, Particle particle, double temperature, Shape shape, ...);
+
+    ~Space();
 };
 
 // Utility Functions
