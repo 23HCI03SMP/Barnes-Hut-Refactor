@@ -3,16 +3,16 @@
 #pragma once
 
 // Public variables
-constexpr double pi = 3.14159265358979323846;
-constexpr double speedOfLight = 3e8; // m/s
+constexpr double PI = 3.14159265358979323846;
+constexpr double c = 3e8; // m/s
 
 constexpr double theta = 0.5;
-constexpr double mu0 = 4 * pi * 1e-7; // N/A^2
-constexpr double epsilon0 = 1/(mu0 * speedOfLight * speedOfLight); // F/m
+constexpr double mu0 = 4 * PI * 1e-7; // N/A^2
+constexpr double epsilon0 = 1/(mu0 * c * c); // F/m
 constexpr double timeStep = 0.01; // s
-constexpr double elementaryCharge = 1.6e-19; // C
-constexpr double amu = 1.67e-27; // kg
-constexpr double electronMass = 9.11e-31; // kg
+constexpr double ELEMENTARYCHARGE = 1.6e-19; // C
+constexpr double AMU = 1.67e-27; // kg
+constexpr double M_ELECTRON = 9.11e-31; // kg
 
 // Structs
 struct Point

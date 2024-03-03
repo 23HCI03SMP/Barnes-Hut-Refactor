@@ -42,17 +42,17 @@ void Particle::updatePosition(double timeStep)
 
 Field BiotSavartLaw(Node other, Charge charge, float euclideanDistance, Distance distance, Velocity velocity) 
 {
-    Field bField = Field(((mu0 / (4 * pi)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.y * distance.z - velocity.z * distance.y))) + externalMagneticField.x,
-                        ((mu0 / (4 * pi)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.z * distance.x - velocity.x * distance.z))) + externalMagneticField.y,
-                        ((mu0 / (4 * pi)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.x * distance.y - velocity.y * distance.x))) + externalMagneticField.z);
+    Field bField = Field(((mu0 / (4 * PI)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.y * distance.z - velocity.z * distance.y))) + externalMagneticField.x,
+                        ((mu0 / (4 * PI)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.z * distance.x - velocity.x * distance.z))) + externalMagneticField.y,
+                        ((mu0 / (4 * PI)) * ((other.charge.positive - other.charge.negative) / (euclideanDistance * euclideanDistance * euclideanDistance) * (velocity.x * distance.y - velocity.y * distance.x))) + externalMagneticField.z);
     return bField;
 }
 
 Force CoulombsLaw(Node other, Charge charge, float euclideanDistance, Distance distance) 
 {
-    Force eForce = Force((1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.x + (externalElectricField.x * charge.positive), 
-                        (1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.y + (externalElectricField.y * charge.positive), 
-                        (1 / (4 * pi * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.z + (externalElectricField.z * charge.positive));
+    Force eForce = Force((1 / (4 * PI * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.x + (externalElectricField.x * charge.positive), 
+                        (1 / (4 * PI * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.y + (externalElectricField.y * charge.positive), 
+                        (1 / (4 * PI * epsilon0)) * (((charge.positive - charge.negative) * (other.charge.positive - other.charge.negative)) / (euclideanDistance * euclideanDistance * euclideanDistance)) * distance.z + (externalElectricField.z * charge.positive));
     return eForce;
 }
 

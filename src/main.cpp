@@ -3,9 +3,9 @@
 
 int main() {
     Space *space = new Space(Point(0, 0, 0), Point(5, 5, 5));
-    Particle *part1 = new Particle("A", Point(0, 0, 0), Velocity(0, 0, 0), 1, Charge(elementaryCharge, 0));
-    Particle *part2 = new Particle("B", Point(5, 5, 5), Velocity(0, 0, 0), 1, Charge(0, elementaryCharge));
-    Particle *part3 = new Particle("C", Point(3, 3, 3), Velocity(0, 0, 0), 1, Charge(elementaryCharge, 0));
+    Particle *part1 = new Particle("A", Point(0, 0, 0), Velocity(0, 0, 0), 1, Charge(ELEMENTARYCHARGE, 0));
+    Particle *part2 = new Particle("B", Point(5, 5, 5), Velocity(0, 0, 0), 1, Charge(0, ELEMENTARYCHARGE));
+    Particle *part3 = new Particle("C", Point(3, 3, 3), Velocity(0, 0, 0), 1, Charge(ELEMENTARYCHARGE, 0));
 
     space->insert(part1);
     space->insert(part2);
