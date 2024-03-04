@@ -72,7 +72,11 @@ struct Charge
 {
     double positive, negative; // C
 
-    Charge() {}
+    Charge() 
+    {
+        positive = std::numeric_limits<double>::quiet_NaN();
+        negative = std::numeric_limits<double>::quiet_NaN();
+    }
     Charge(double positive, double negative) : positive(positive), negative(negative) {}
 
     Charge operator+(Charge &other)
@@ -112,6 +116,7 @@ public:
     Charge charge;
 
     Node(Charge charge);
+    void insert(Node node);
     bool isExternalNode();
 
     virtual ~Node(){};
@@ -154,6 +159,14 @@ public:
     void calculateEForce(Node *other);
 };
 
+struct ParticleInsertionParameters
+{
+    BaseParticle particle;
+    double ratio;
+
+    ParticleInsertionParameters(BaseParticle particle, double ratio) : particle(particle), ratio(ratio) {}
+};
+
 class Space : public Node
 {
 public:
@@ -166,7 +179,7 @@ public:
     bool find(Point point);
     bool isExternalNode();
     std::vector<Particle *> getChildren();
-    std::vector<Particle *> generateParticles(double density, BaseParticle particleParameters, double temperature, Shape shape, std::initializer_list<double> dimensions);
+    std::vector<Particle *> generateParticles(double density, std::initializer_list<ParticleInsertionParameters> insertionParticles, double temperature, Shape shape, std::initializer_list<double> dimensions);
 
     ~Space();
 };

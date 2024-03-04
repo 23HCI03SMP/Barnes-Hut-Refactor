@@ -1,5 +1,6 @@
 #include "include/barnes.h"
 #include <iostream>
+#include <numeric>
 #include <vector>
 #include <cstdarg>
 #include <cmath>
@@ -19,8 +20,8 @@ Space::Space(Point minPoint, Point maxPoint, Charge charge) : Node(charge)
 {
     this->minPoint = minPoint;
     this->maxPoint = maxPoint;
-    this->centreOfPositveCharge = Point(0, 0, 0);
-    this->centreOfNegativeCharge = Point(0, 0, 0);
+    this->centreOfPositveCharge = Point();
+    this->centreOfNegativeCharge = Point();
 }
 
 Space::~Space()
@@ -31,7 +32,8 @@ Space::~Space()
     }
 }
 
-std::vector<Particle *> Space::generateParticles(double density, BaseParticle particleParameters, double temperature, Shape shape, std::initializer_list<double> dimensions)
+// density refers to the number of particles per unit volume
+std::vector<Particle *> Space::generateParticles(double density, std::initializer_list<ParticleInsertionParameters> insertionParticles, double temperature, Shape shape, std::initializer_list<double> dimensions)
 {
     std::vector<Particle *> particles;
 
@@ -42,25 +44,36 @@ std::vector<Particle *> Space::generateParticles(double density, BaseParticle pa
     {
     case Shape::SPHERE:
     {
+        if (dimensions.size() != 1)
+            throw std::runtime_error("Invalid number of dimensions (expected 1) for sphere shape.");
+
+        // if the ratios don't add up to 1
+        if (std::accumulate(insertionParticles.begin(), insertionParticles.end(), 0.0, [](double sum, ParticleInsertionParameters particle) { return sum + particle.ratio; }) != 1)
+            throw std::runtime_error("Ratios don't add up to 1");
+
         double radius = *dimensions.begin();
-        double n = std::ceil(density * (4 / 3) * PI * radius * radius * radius);
 
-        for (int i = 0; i < n; i++)
+        for (ParticleInsertionParameters insertionParameterParticle : insertionParticles)
         {
-            double x = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.x + this->minPoint.x) / 2;
-            double y = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.y + this->minPoint.y) / 2;
-            double z = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.z + this->minPoint.z) / 2;
+            double n = std::ceil(density * (4.0 / 3.0) * PI * radius * radius * radius * insertionParameterParticle.ratio);
 
-            double vx = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / particleParameters.mass));
-            double vy = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / particleParameters.mass));
-            double vz = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / particleParameters.mass));
+            for (int i = 0; i < n; i++)
+            {
+                double x = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.x + this->minPoint.x) / 2;
+                double y = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.y + this->minPoint.y) / 2;
+                double z = gsl_ran_flat(rng, -radius, radius) + (this->maxPoint.z + this->minPoint.z) / 2;
 
-            Particle *particle = new Particle(particleParameters.alias, Point(x, y, z), Velocity(vx, vy, vz), particleParameters.mass, particleParameters.charge);
-            particle->bField = particleParameters.bField;
-            particle->eForce = particleParameters.eForce;
+                double vx = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / insertionParameterParticle.particle.mass));
+                double vy = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / insertionParameterParticle.particle.mass));
+                double vz = gsl_ran_gaussian(rng, sqrt((K_BOLTZMANN * temperature) / insertionParameterParticle.particle.mass));
 
-            this->insert(particle);
-            particles.push_back(particle);
+                Particle *particle = new Particle(insertionParameterParticle.particle.alias, Point(x, y, z), Velocity(vx, vy, vz), insertionParameterParticle.particle.mass, insertionParameterParticle.particle.charge);
+                particle->bField = insertionParameterParticle.particle.bField;
+                particle->eForce = insertionParameterParticle.particle.eForce;
+
+                this->insert(particle);
+                particles.push_back(particle);
+            }
         }
 
         break;
@@ -85,6 +98,7 @@ std::vector<Particle *> Space::generateParticles(double density, BaseParticle pa
         throw std::runtime_error("Invalid shape");
     }
     }
+
     return particles;
 }
 
@@ -184,24 +198,32 @@ bool Space::find(Point point)
 
 Space *CalculateSpaceParameters(Space *baseSpace, int octant)
 {
+    double xMax = (*baseSpace).maxPoint.x;
+    double xMin = (*baseSpace).minPoint.x;
+    double yMax = (*baseSpace).maxPoint.y;
+    double yMin = (*baseSpace).minPoint.y;
+    double zMax = (*baseSpace).maxPoint.z;
+    double zMin = (*baseSpace).minPoint.z;
+
+
     switch (octant)
     {
     case o1: // top left back
-        return new Space(Point(baseSpace->minPoint.x, baseSpace->maxPoint.y / 2, baseSpace->maxPoint.z / 2), Point(baseSpace->maxPoint.x / 2, baseSpace->maxPoint.y, baseSpace->maxPoint.z), Charge(0, 0));
+        return new Space(Point((*baseSpace).minPoint.x, (*baseSpace).maxPoint.y / 2, (*baseSpace).maxPoint.z / 2), Point((*baseSpace).maxPoint.x / 2, (*baseSpace).maxPoint.y, (*baseSpace).maxPoint.z), Charge());
     case o2: // top right back
-        return new Space(Point(baseSpace->maxPoint.x / 2, baseSpace->maxPoint.y / 2, baseSpace->maxPoint.z / 2), baseSpace->maxPoint, Charge(0, 0));
+        return new Space(Point((*baseSpace).maxPoint.x / 2, (*baseSpace).maxPoint.y / 2, (*baseSpace).maxPoint.z / 2), (*baseSpace).maxPoint, Charge());
     case o3: // top right front
-        return new Space(Point(baseSpace->maxPoint.x / 2, baseSpace->maxPoint.y / 2, baseSpace->minPoint.z), Point(baseSpace->maxPoint.x, baseSpace->maxPoint.y, baseSpace->maxPoint.z / 2), Charge(0, 0));
+        return new Space(Point((*baseSpace).maxPoint.x / 2, (*baseSpace).maxPoint.y / 2, (*baseSpace).minPoint.z), Point((*baseSpace).maxPoint.x, (*baseSpace).maxPoint.y, (*baseSpace).maxPoint.z / 2), Charge());
     case o4: // top left front
-        return new Space(Point(baseSpace->minPoint.x, baseSpace->maxPoint.y / 2, baseSpace->minPoint.z), Point(baseSpace->maxPoint.x / 2, baseSpace->maxPoint.y / 2, baseSpace->maxPoint.z / 2), Charge(0, 0));
+        return new Space(Point((*baseSpace).minPoint.x, (*baseSpace).maxPoint.y / 2, (*baseSpace).minPoint.z), Point((*baseSpace).maxPoint.x / 2, (*baseSpace).maxPoint.y / 2, (*baseSpace).maxPoint.z / 2), Charge());
     case o5: // bottom left back
-        return new Space(Point(baseSpace->minPoint.x, baseSpace->minPoint.y, baseSpace->maxPoint.z / 2), Point(baseSpace->maxPoint.x / 2, baseSpace->maxPoint.y / 2, baseSpace->maxPoint.z), Charge(0, 0));
+        return new Space(Point((*baseSpace).minPoint.x, (*baseSpace).minPoint.y, (*baseSpace).maxPoint.z / 2), Point((*baseSpace).maxPoint.x / 2, (*baseSpace).maxPoint.y / 2, (*baseSpace).maxPoint.z), Charge());
     case o6: // bottom right back
-        return new Space(Point(baseSpace->maxPoint.x / 2, baseSpace->minPoint.y, baseSpace->maxPoint.z / 2), Point(baseSpace->maxPoint.x, baseSpace->maxPoint.y / 2, baseSpace->maxPoint.z), Charge(0, 0));
+        return new Space(Point((*baseSpace).maxPoint.x / 2, (*baseSpace).minPoint.y, (*baseSpace).maxPoint.z / 2), Point((*baseSpace).maxPoint.x, (*baseSpace).maxPoint.y / 2, (*baseSpace).maxPoint.z), Charge());
     case o7: // bottom right front
-        return new Space(Point(baseSpace->maxPoint.x / 2, baseSpace->minPoint.y, baseSpace->minPoint.z), Point(baseSpace->maxPoint.x, baseSpace->maxPoint.y / 2, baseSpace->maxPoint.z / 2), Charge(0, 0));
+        return new Space(Point((*baseSpace).maxPoint.x / 2, (*baseSpace).minPoint.y, (*baseSpace).minPoint.z), Point((*baseSpace).maxPoint.x, (*baseSpace).maxPoint.y / 2, (*baseSpace).maxPoint.z / 2), Charge());
     case o8: // bottom left front
-        return new Space(baseSpace->minPoint, Point(baseSpace->maxPoint.x / 2, baseSpace->maxPoint.y / 2, baseSpace->maxPoint.z / 2), Charge(0, 0));
+        return new Space((*baseSpace).minPoint, Point((*baseSpace).maxPoint.x / 2, (*baseSpace).maxPoint.y / 2, (*baseSpace).maxPoint.z / 2), Charge());
     default:
         throw std::runtime_error("This shouldn't even happen (Octant shouldn't be anything other than o1 to o8)");
     }
@@ -210,9 +232,9 @@ Space *CalculateSpaceParameters(Space *baseSpace, int octant)
 int GetOctant(Particle *particle, Space *baseSpace)
 {
     int octant;
-    double xMid = (baseSpace->maxPoint.x + baseSpace->minPoint.x) / 2;
-    double yMid = (baseSpace->maxPoint.y + baseSpace->minPoint.y) / 2;
-    double zMid = (baseSpace->maxPoint.z + baseSpace->minPoint.z) / 2;
+    double xMid = ((*baseSpace).maxPoint.x + (*baseSpace).minPoint.x) / 2;
+    double yMid = ((*baseSpace).maxPoint.y + (*baseSpace).minPoint.y) / 2;
+    double zMid = ((*baseSpace).maxPoint.z + (*baseSpace).minPoint.z) / 2;
 
     if (particle->pos.x >= xMid) // Right
     {
@@ -282,7 +304,20 @@ void Space::insert(Node *node)
     }
     else if (dynamic_cast<Particle *>(node)) // if the node to be added is a particle
     {
-        // if the space doesn't have any octants, create them
+        // int octant = GetOctant(dynamic_cast<Particle *>(node), this);
+        // Space *space = CalculateSpaceParameters(this, octant);
+
+        // // if the space doesn't have any octants, create them
+        // if (this->children.size() == 0)
+        // {
+        //     for (int i = o1; i <= o8; i++)
+        //     {
+        //         space->children.push_back(CalculateSpaceParameters(this, i));
+        //     }
+
+        //     this->children = space->children;
+        // }
+
         if (this->children.size() == 0)
         {
             for (int i = o1; i <= o8; i++)
@@ -291,15 +326,17 @@ void Space::insert(Node *node)
             }
         }
 
-        // decide which octant the node belongs to
         int octant = GetOctant(dynamic_cast<Particle *>(node), this);
+
+        // decide which octant the node belongs to
+        // int octant = GetOctant(dynamic_cast<Particle *>(node), this);
         Node *octantNode = this->children[octant]; // get the octant node
 
         if (dynamic_cast<Space *>(octantNode)) // if the octant is a space
         {
             if (dynamic_cast<Space *>(octantNode)->isExternalNode()) // if the octant has no chidren, simply replace it with the node
             {
-                delete octantNode;
+                // delete octantNode;
                 this->children[octant] = node;
             }
             else
@@ -322,23 +359,36 @@ void Space::insert(Node *node)
 
             int insertOctant = GetOctant(insertParticle, newTree);
             int currentOctant = GetOctant(currentPoint, newTree);
-            for (int i = o1; i <= o8; i++)
+            
+            if (insertOctant == currentOctant)
             {
-                if (i == insertOctant)
+                newTree->insert(insertParticle);
+                newTree->insert(currentPoint);
+            }
+            else
+            {
+                for (int i = o1; i <= o8; i++)
                 {
-                    newTree->children.push_back(insertParticle);
-                }
-                else if (i == currentOctant)
-                {
-                    newTree->children.push_back(currentPoint);
-                }
-                else
-                {
-                    newTree->children.push_back(CalculateSpaceParameters(newTree, i));
-                }
+                    if (i == insertOctant)
+                    {
+                        newTree->children.push_back(insertParticle);
+                    }
+                    else if (i == currentOctant)
+                    {
+                        newTree->children.push_back(currentPoint);
+                    }
+                    else
+                    {
+                        newTree->children.push_back(CalculateSpaceParameters(newTree, i));
+                    }
+                }                
             }
 
             this->children[octant] = newTree;
         }
+    } 
+    else
+    {
+        throw std::runtime_error("Invalid node type");
     }
 }
